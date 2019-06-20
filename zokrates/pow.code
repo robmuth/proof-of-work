@@ -16,24 +16,21 @@ def pack256(field[256] bits) -> (field):
 
 
 // Verifies if a timestamp
-def verifyTimestamp(field[2] R, field S, field[2] A, field[256] M0, field[256] M1, private field timestamp, private field eid, private field nonce) -> (field):
+def verifyTimestamp(field[2] R, field S, field[2] A, field[256] M0, field[256] M1, private field timestamp, private field eid, private field[256] nonce) -> (field):
 
     // Unpack packed fields
     field[256] timestampUnpacked = unpack256(timestamp)
     field[256] eidUnpacked = unpack256(eid)
-    field[256] nonceUnpacked = unpack256(nonce)
 
     // Hash concatenation of employee id and nonce
-    field[256] empolyeeHash = sha256(eidUnpacked,nonceUnpacked)
+    field[256] empolyeeHash = sha256(eidUnpacked,nonce)
 
     // Hash concatenation of employee hash and timestamp
     field[256] terminalHash = sha256(empolyeeHash,timestampUnpacked)
 
     // Check if hash is equal to signed message
     // We only use the first 256 bit of the message
-    for field i in 0..255 do
-        terminalHash[i] == M0[i]
-    endfor
+    terminalHash == M0
 
     // Curve parameters for eddsa signature verification
     field[10] context = c()
@@ -53,15 +50,14 @@ def verifyTimestamp(field[2] R, field S, field[2] A, field[256] M0, field[256] M
 // * Hash of (nonce||nonce1) used by employee
 // * Worktime = (timestamp1 - timestamp) in seconds
 def main( \
-    private field[2] R, \ // per-message nonce for signature
-    private field S, \ // signature
-    field[2] A, \ // public key to verify signature
-    private field[256] M0, \ // First 256bit of message used to create signature 1
-    private field[256] M1, \ // Second 256bit of message used to create signature 1
-    private field timestamp, \ // UNIX timestamp provided by terminal
-    field eid,  \ // employee id
-    private field[256] nonce, \ // Nonce used by the empolyee
-    // Same as above for second signed timestamp
+    private field[2] R, \
+    private field S, \
+    field[2] A, \
+    private field[256] M0, \
+    private field[256] M1, \
+    private field timestamp, \
+    field eid, \
+    private field[256] nonce, \
     private field[2] R1, \
     private field S1, \
     private field[2] A1, \
