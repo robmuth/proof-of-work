@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
+import sys
 import hashlib
 import random
 import time
@@ -5,32 +8,17 @@ from bitstring import BitArray
 
 from zokrates.eddsa import PrivateKey, PublicKey, Point
 from zokrates.field import FQ
-
-def generateNonce(length=8):
-    """Generate pseudorandom number."""
-    return ''.join([str(random.randint(0, 9)) for i in range(length)])
-
-def generateEmployeeHash(eid):
-    """Generate employee hash as concat of eid and a nonce."""
-    eidBin = int(eid).to_bytes(32, "big")
-    nonce = generateNonce()
-    nonceBin = int(nonce).to_bytes(32, "big")
-
-    employeeHash = hashlib.sha256(eidBin + nonceBin).digest()
-    return {'eid': eid, 'nonce': nonce ,'employeeHash': employeeHash}
-
-
-
+from zokrates.utils import to_bytes
 
 def terminalSign(employeeHash,ts=time.time()):
     """Add timestamp and sign employee message"""
     # Prepare mst to sign
     timestamp = int(ts)
-    timestampBin = timestamp.to_bytes(32,"big")
+    timestampBin = to_bytes(timestamp)
     terminalMsg = hashlib.sha256(employeeHash + timestampBin).digest()
 
     # Pad with 256bit since implemented eddsa expects a 512bit message
-    terminalMsg = terminalMsg + int(0).to_bytes(32, "big")
+    terminalMsg = terminalMsg + to_bytes(int(0))
 
     # sk = PrivateKey.from_rand()
     # Seeded for debug purpose
@@ -42,29 +30,7 @@ def terminalSign(employeeHash,ts=time.time()):
 
     return {'pk': pk, 'sig': sig, 'msg': terminalMsg, 'timestamp': timestamp}
 
-def to_bytes(*args):
-    "Returns byte representation for objects used in this module."
-    result = b""
-    for M in args:
-        if isinstance(M, Point):
-            result += to_bytes(M.x)
-            # result += to_bytes(M.y)
-        elif isinstance(M, FQ):
-            result += to_bytes(M.n)
-        elif isinstance(M, int):
-            result += M.to_bytes(32, "big")
-        elif isinstance(M, BitArray):
-            result += M.tobytes()
-        elif isinstance(M, bytes):
-            result += M
-        elif isinstance(M, (list, tuple)):
-            result += b"".join(to_bytes(_) for _ in M)
-        else:
-            raise TypeError("Bad type for M: " + str(type(M)))
-    return result
-
-
-def write_input_for_zokrates_cli(pk, sig, msg, path, timestamp, eid, nonce):
+def write_input_for_zokrates_cli(pk, sig, msg, timestamp):
     "Writes the input arguments for ZoKrates to file."
     sig_R, sig_S = sig
     args = [sig_R.x, sig_R.y, sig_S, pk.p.x.n, pk.p.y.n]
@@ -72,30 +38,17 @@ def write_input_for_zokrates_cli(pk, sig, msg, path, timestamp, eid, nonce):
 
     M0 = msg.hex()[:64]
     M1 = msg.hex()[64:]
-    b0 = BitArray(int(M0, 16).to_bytes(32, "big")).bin
-    b1 = BitArray(int(M1, 16).to_bytes(32, "big")).bin
+    b0 = BitArray(to_bytes(int(M0, 16))).bin
+    b1 = BitArray(to_bytes(int(M1, 16))).bin
     args = args + " " + " ".join(b0 + b1)
 
-    args = args + " " + " ".join(map(str,[timestamp, eid, nonce]))
+    args = args + " " + " ".join(map(str,[timestamp]))
 
-
-
-    with open(path, "w+") as file:
-        for l in args:
-            file.write(l)
-
-
+    print(args)
 
 if __name__ == "__main__":
+    employeeHash = int('0x{}'.format(sys.argv[1]), 16)
 
+    terminalSignature = terminalSign(to_bytes(employeeHash))
 
-
-    eid = 1
-
-    employeeHash = generateEmployeeHash(eid)
-
-    terminalSignature = terminalSign(employeeHash['employeeHash'])
-
-
-    path = './zokrates_args'
-    write_input_for_zokrates_cli(terminalSignature["pk"], terminalSignature["sig"], terminalSignature["msg"], path, terminalSignature["timestamp"], employeeHash["eid"], employeeHash["nonce"])
+    write_input_for_zokrates_cli(terminalSignature["pk"], terminalSignature["sig"], terminalSignature["msg"], terminalSignature["timestamp"])
