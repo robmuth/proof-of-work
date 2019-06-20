@@ -3,6 +3,17 @@ import "hashes/sha256/512bitPadded.code" as sha256
 import "signatures/verifyEddsa.code"
 import "ecc/babyjubjubParams.code" as c
 
+def pack256(field[256] bits) -> (field):
+
+	field out = 0
+
+	for field j in 0..256 do
+		field i = 256 - (j + 1)
+		out = out + bits[i] * (2 ** j)
+	endfor
+
+    return out
+
 
 // Verifies if a timestamp
 def verifyTimestamp(field[2] R, field S, field[2] A, field[256] M0, field[256] M1, private field timestamp, private field eid, private field nonce) -> (field):
@@ -46,7 +57,7 @@ def main( \
     private field[256] M11, \
     private field timestamp1, \
     field eid1, \
-    field nonce1) -> (field[256], field):
+    field nonce1) -> (field, field):
 
     // Check if terminal public keys match
     A == A1
@@ -64,4 +75,4 @@ def main( \
     isVerified1 == 1
 
     // Return working time in seconds
-    return pubKeyHash, timestamp1 - timestamp
+    return pack256(pubKeyHash), timestamp1 - timestamp
