@@ -7,7 +7,7 @@ To ensure "health and safety" employees in Europe, the European Court of Justice
 Although this ruling has been spoken in favor of employees, ironically it can be also be used by employers against them by profiling working hours of individuals and imposing sanctions which might be contrary to the goal of the ruling.
 
 ## Requirements
-Bash scripts are optimized for Unix and the behavior is unknown for Linux! For python scripts (e.g., [`terminal.py`](./blob/master/bin/terminal.py)), Python3 is required and [`pycrypto`](https://github.com/Zokrates/pycrypto) (of Zokrates project) must be on `PYTHONPATH`.
+Bash scripts are optimized for Unix and the behavior is unknown for Linux! For python scripts (e.g., [`terminal.py`](./bin/terminal.py)), Python3 is required and [`pycrypto`](https://github.com/Zokrates/pycrypto) (of Zokrates project) must be on `PYTHONPATH`.
 
 ## Workflow
 <p align="center">
