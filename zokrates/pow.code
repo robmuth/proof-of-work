@@ -1,0 +1,67 @@
+import "utils/pack/unpack256.code"
+import "hashes/sha256/512bitPadded.code" as sha256
+import "signatures/verifyEddsa.code"
+import "ecc/babyjubjubParams.code" as c
+
+
+// Verifies if a timestamp
+def verifyTimestamp(field[2] R, field S, field[2] A, field[256] M0, field[256] M1, private field timestamp, private field eid, private field nonce) -> (field):
+
+    // Unpack packed fields
+    field[256] timestampUnpacked = unpack256(timestamp)
+    field[256] eidUnpacked = unpack256(eid)
+    field[256] nonceUnpacked = unpack256(nonce)
+
+    // Hash concatenation of employee id and nonce
+    field[256] empolyeeHash = sha256(eidUnpacked,nonceUnpacked)
+
+    // Hash concatenation of employee hash and timestamp
+    field[256] terminalHash = sha256(empolyeeHash,timestampUnpacked)
+
+    // Check if hash is equal to signed message
+    // We only use the first 256 bit of the message
+    for field i in 0..255 do
+        terminalHash[i] == M0[i]
+    endfor
+
+    // Curve parameters for eddsa signature verification
+    field[10] context = c()
+
+    // verify eddsa signature. Will return 1 if successful
+    return verifyEddsa(R, S, A, M0, M1, context)
+
+
+def main( \
+    private field[2] R, \
+    private field S, \
+    field[2] A, \
+    private field[256] M0, \
+    private field[256] M1, \
+    private field timestamp, \
+    field eid, field nonce, \
+    private field[2] R1, \
+    private field S1, \
+    private field[2] A1, \
+    private field[256] M01, \
+    private field[256] M11, \
+    private field timestamp1, \
+    field eid1, \
+    field nonce1) -> (field[256], field):
+
+    // Check if terminal public keys match
+    A == A1
+
+    // Split pubkey in coordinates, unpack and hash
+    field a = A[1]
+    field b = A[2]
+
+    field[256] pubKeyHash = sha256(unpack256(a),unpack256(b))
+
+    field isVerified = verifyTimestamp(R, S, A, M0, M1, timestamp, eid, nonce)
+    isVerified == 1
+
+    field isVerified1 = verifyTimestamp(R1, S1, A1, M01, M11, timestamp1, eid1, nonce1)
+    isVerified1 == 1
+
+    // Return working time in seconds
+    return pubKeyHash, timestamp1 - timestamp
