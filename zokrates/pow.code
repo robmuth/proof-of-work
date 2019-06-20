@@ -42,14 +42,26 @@ def verifyTimestamp(field[2] R, field S, field[2] A, field[256] M0, field[256] M
     return verifyEddsa(R, S, A, M0, M1, context)
 
 
+// Takes two signatures with their respective messages and encoded data:
+// timestamp, nonce, employee id
+// Verifies that:
+// * public keys of both signatures match
+// * preimage hashes to signed msg
+// * signatures correspond to public key
+// Returns:
+// * Hash of public key used to sign timestamp
+// * Hash of (nonce||nonce1) used by employee
+// * Worktime = (timestamp1 - timestamp) in seconds
 def main( \
-    private field[2] R, \
-    private field S, \
-    field[2] A, \
-    private field[256] M0, \
-    private field[256] M1, \
-    private field timestamp, \
-    field eid, field nonce, \
+    private field[2] R, \ // per-message nonce for signature
+    private field S, \ // signature
+    field[2] A, \ // public key to verify signature
+    private field[256] M0, \ // First 256bit of message used to create signature 1
+    private field[256] M1, \ // Second 256bit of message used to create signature 1
+    private field timestamp, \ // UNIX timestamp provided by terminal
+    field eid,  \ // employee id
+    private field[256] nonce, \ // Nonce used by the empolyee
+    // Same as above for second signed timestamp
     private field[2] R1, \
     private field S1, \
     private field[2] A1, \
@@ -57,7 +69,7 @@ def main( \
     private field[256] M11, \
     private field timestamp1, \
     field eid1, \
-    field nonce1) -> (field, field):
+    private field[256] nonce1) -> (field, field, field):
 
     // Check if terminal public keys match
     A == A1
@@ -66,7 +78,10 @@ def main( \
     field a = A[0]
     field b = A[1]
 
-    field[256] pubKeyHash = sha256(unpack256(a),unpack256(b))
+    field pubKeyHash = pack256(sha256(unpack256(a),unpack256(b)))
+
+    // Create hash of nonces
+    field nonceHash = pack256(sha256(nonce,nonce1))
 
     field isVerified = verifyTimestamp(R, S, A, M0, M1, timestamp, eid, nonce)
     isVerified == 1
@@ -74,5 +89,4 @@ def main( \
     field isVerified1 = verifyTimestamp(R1, S1, A1, M01, M11, timestamp1, eid1, nonce1)
     isVerified1 == 1
 
-    // Return working time in seconds
-    return pack256(pubKeyHash), timestamp1 - timestamp
+    return pubKeyHash, nonceHash, timestamp1 - timestamp
