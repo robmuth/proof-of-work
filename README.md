@@ -10,9 +10,7 @@ Although this ruling has been spoken in favor of employees, ironically it can be
 Bash scripts are optimized for Unix and the behavior is unknown for Linux! For python scripts (e.g., [`terminal.py`](./blob/master/bin/terminal.py)), Python3 is required and [`pycrypto`](https://github.com/Zokrates/pycrypto) (of Zokrates project) must be on `PYTHONPATH`.
 
 ## Workflow
-Three entities are required to realize our scheme:
 
-  1. An employee, providing the zero-knowledge proof
-  2. An emploter, verifying the proof
-  3. A terminal issuing timestamps, trusted by both other parties
+![Workflow](./workflow.png)
 
+## Quickstart
