@@ -1,4 +1,4 @@
-# 💥 PoW 💥
+# P💥W 
 A zero-knowledge Proof-of-Work (PoW) to make sure that working hours of an employee is conform to the European law, withtout knowing the details such as starting and finishing times or breaks.
 
 ## Background
