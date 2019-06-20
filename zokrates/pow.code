@@ -52,8 +52,8 @@ def main( \
     A == A1
 
     // Split pubkey in coordinates, unpack and hash
-    field a = A[1]
-    field b = A[2]
+    field a = A[0]
+    field b = A[1]
 
     field[256] pubKeyHash = sha256(unpack256(a),unpack256(b))
 
