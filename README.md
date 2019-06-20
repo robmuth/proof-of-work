@@ -10,7 +10,8 @@ Although this ruling has been spoken in favor of employees, ironically it can be
 Bash scripts are optimized for Unix and the behavior is unknown for Linux! For python scripts (e.g., [`terminal.py`](./blob/master/bin/terminal.py)), Python3 is required and [`pycrypto`](https://github.com/Zokrates/pycrypto) (of Zokrates project) must be on `PYTHONPATH`.
 
 ## Workflow
-
-![Workflow](./workflow.png)
+<p align="center">
+    <img src="./workflow.png" width="50%" height="50%">
+</p>
 
 ## Quickstart
